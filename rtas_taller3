@@ -1,0 +1,39 @@
+Respuestas taller 3: Programación Assembly x86 - Convención C
+
+a) Convecion de llamada es la forma de enviar y recibir informacion usando funciones del sistema.
+La ABI en System V define:
+- 64 bits: usar registros de proposito general y la pila (AMD 64 ABI) lee de izquierda a derecha los registros y de derecha a izquierda la pila.
+- 32 bits: solo usa la pila leyendola de derecha a izquierda (i386 ABI).
+
+b) La responsabilidad de asegurar que se cumple la convención de llamada en C es del compilador. La responsabilidad de asegurar que se cumple la convención de llamada en ASM es del programador.
+
+c) Stack frame: lo comprendido entre el EBP y el ESP en el stack.
+Prologo: donde se reserva espacio en la pila para datos temporales, se agrega padding para alinear y se preserva valores de registros no volatiles.
+Epilogo: donde se restauran los valores de los registros no volatiles, devuelve la pila al estado inicial y realiza el RET.
+
+d) El mecanismo utilizado para almacenar variables temporales es el PUSH a la pila reservando espacio.
+
+e) a 16 bytes es necesario alinear la pila si utilizamos funciones de libc. 
+Si la pila está alienada a 16 bytes al realizarse una llamada función, su alineamiento al ejecutar la primera instrucción de la función llamada es de 8 bytes ya que es pushear EIP a la pila y queda desalineada.
+
+f) Una actualización de bibliotecas realiza los siguientes cambios a distintas funciones. ¿Cómo se ven impactados los
+programas ya compilados?
+
+Una biblioteca de procesamiento cambia la estructura pixel t:
+• Antes era struct { uint8 t r, g, b, a; }
+• Ahora es struct { uint8 t a, r, g, b; }
+¿Cómo afecta esto a la función void a escala de grises(uint32 t ancho, uint32 t alto, pixel t* data)?
+Se reordenan los parámetros de float sumar floats(float* array, uint64 t tama~no).
+No afecta en nada porque pixel es un puntero.
+
+La función uint16 t registrar usuario(char* nombre, char* contrase~na) registra un usuario y devuelve su ID. Para soportar más usuarios se cambia el tipo de retorno por uint64 t.
+Sigue funcionando bien, usa los 16 bits mas bajos de los 64.
+
+La función void cambiar nombre(uint16 t user id, char* nuevo nombre) también recibe la misma actualización. ¿Qué sucede ahora?
+En este caso se rompe.
+
+Se reordenan los parámetros de int32 t multiplicar(float a, int32 t b).
+Sigue funcionando ya que floats e ints se guardan en registros distintos.
+
+¿Qué sucede si una función externa utilizada por nuestro programa1 cambia su interfaz (parámetros o tipo devuelto) luego de una actualización? 
+Hay que recompilar.
